@@ -1,40 +1,33 @@
 #!/bin/bash
-
-# Exit on error
 set -e
 
-# Create a temporary directory for downloading
 TEMP_DIR=$(mktemp -d)
-GUEST_ADDITIONS_ISO="VBoxGuestAdditions.iso"
-INSTALL_DIR="/media/VBoxGuestAdditions
+GUEST_ADDITIONS_ISO="$TEMP_DIR/VBoxGuestAdditions.iso"
+INSTALL_DIR="/media/VBoxGuestAdditions"
 
-# Update package list and install required packages
 sudo apt update
 sudo apt install -y build-essential dkms linux-headers-$(uname -r) wget
 
-# Change to the temporary directory
 cd "$TEMP_DIR"
 
-# Download the latest Guest Additions
-echo "Downloading the latest VirtualBox Guest Additions..."
-wget -O "$GUEST_ADDITIONS_ISO" "https://download.virtualbox.org/virtualbox/LATEST.TXT"
+echo "Fetching latest VirtualBox version..."
+wget -q -O LATEST.TXT "https://download.virtualbox.org/virtualbox/LATEST.TXT"
 LATEST_VERSION=$(cat LATEST.TXT)
-wget "https://download.virtualbox.org/virtualbox/$LATEST_VERSION/VBoxGuestAdditions_$LATEST_VERSION.iso"
 
-# Mount the downloaded ISO
-sudo mount "$GUEST_ADDITIONS_ISO" "$INSTALL_DIR"
+echo "Downloading VBoxGuestAdditions $LATEST_VERSION..."
+wget -q -O "$GUEST_ADDITIONS_ISO" "https://download.virtualbox.org/virtualbox/$LATEST_VERSION/VBoxGuestAdditions_${LATEST_VERSION}.iso"
 
-# Install Guest Additions
+sudo mkdir -p "$INSTALL_DIR"
+sudo mount -o loop "$GUEST_ADDITIONS_ISO" "$INSTALL_DIR"
+
 echo "Installing VirtualBox Guest Additions..."
-sudo sh "$INSTALL_DIR/VBoxLinuxAdditions.run"
+sudo sh "$INSTALL_DIR/VBoxLinuxAdditions.run" || sudo "$INSTALL_DIR/VBoxLinuxAdditions.run" --nox11
 
-# Unmount and cleanup
 sudo umount "$INSTALL_DIR"
-echo "Cleaning up installation files..."
+sudo rmdir "$INSTALL_DIR"
+
+cd /
 rm -rf "$TEMP_DIR"
 
-# Installation complete
 echo "VirtualBox Guest Additions installed successfully."
-
-# Suggest reboot
 echo "Please reboot your system for the changes to take effect."
