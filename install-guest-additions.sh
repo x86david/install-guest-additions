@@ -6,7 +6,7 @@ set -e
 # Create a temporary directory for downloading
 TEMP_DIR=$(mktemp -d)
 GUEST_ADDITIONS_ISO="VBoxGuestAdditions.iso"
-INSTALL_DIR="/media"
+INSTALL_DIR="/media/VBoxGuestAdditions
 
 # Update package list and install required packages
 sudo apt update
